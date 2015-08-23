@@ -154,16 +154,19 @@ def getPeerSocket(sock):
 
 def NewSession(sock):
     if sock not in PAIRS and sock not in LIMBO:
-        secret = str(randint(100000,999999))
+        secret = ""
         while secret in SESSIONS.keys():
-            secret = randint(100000,999999)
+            if secret == "":
+                secret = "0"
+            else:
+                secret = str(int(secret) + 1)
         SESSIONS[secret] = [sock]
         LIMBO.append(sock)
         print "Created session", secret
         return secret
     else:
         print "Attempt to create a session while in limbo for other session",
-        return ""
+        return None
 
 
 def JoinSession(secret, sock):
@@ -255,7 +258,7 @@ def HandleDataMessage(message, sock):
 def HandleSessionMessage(message, sock):
     if message.opcode == c2s_pb2.Session.SESSION_CREATE:
         secret = NewSession(sock)
-        if secret != "":
+        if secret != None:
             return getSessionMessageWithSecret(secret)
         else:
             return getSessionMessage((c2s_pb2.Session.SESSION_CREATE_FAIL, c2s_pb2.Session.ERROR_CREATE_ALREADY_HAS_SESSION))
